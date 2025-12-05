@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Beneficio Neto</title>
+  <style>
+    body {
+       font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Centrado horizontal */
+      justify-content: flex-start; /* Inicia desde arriba */
+      padding: 20px 0;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 800px;
+      margin: auto 0 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .section {
+      flex: 1;
+      min-width: 380px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <!-- Campo de comisión global -->
+  <div class="card" style="margin-bottom:10px;">
+    <div class="section">
+      <label>Comisión (%):</label>
+      <select id="comision">
+        <option value="0.16">0.16</option>
+        <option value="0.14">0.14</option>
+        <option value="0.10">0.10</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Primera Card: Venta USDT → Bs → USDT -->
+  <div class="card">
+    <div class="section">
+      <h2>📌 Venta de USDT → Obtener Bolivianos</h2>
+
+      <label>Monto a vender (USDT):</label>
+      <input type="number" id="venta_usdt" placeholder="Ej: 1000" />
+
+      <label>Tasa de cambio venta (Bs por 1 USDT):</label>
+      <input type="number" id="tasa_venta" placeholder="Ej: 6.51" />
+
+      <button onclick="procesarVenta()">Calcular Bolivianos Obtenidos</button>
+
+      <h3 id="resultado_venta"></h3>
+    </div>
+
+    <div class="section">
+      <h2>📌 Compra de USDT → Regresar a USDT</h2>
+
+      <label>Bolivianos disponibles:</label>
+      <input type="number" id="bs_disponibles" placeholder="Automático" disabled />
+
+      <label>Tasa de compra (Bs por 1 USDT):</label>
+      <input type="number" id="tasa_compra" placeholder="Ej: 6.41" />
+
+      <button onclick="procesarCompra()">Comprar USDT</button>
+
+      <h3 id="resultado_compra"></h3>
+
+      <h2 id="beneficio_final"></h2>
+    </div>
+  </div>
+
+  <!-- Segunda Card: Compra Bs → USDT → Bs -->
+  <div class="card">
+    <div class="section">
+      <h2>📌 Compra de USDT con Bolivianos</h2>
+
+      <label>Bolivianos a invertir:</label>
+      <input type="number" id="bs_a_comprar" placeholder="Ej: 6500" />
+
+      <label>Tasa de compra USDT (Bs por 1 USDT):</label>
+      <input type="number" id="tasa_compra_usdt" placeholder="Ej: 6.41" />
+
+      <button onclick="procesarCompraBs()">Comprar USDT</button>
+
+      <h3 id="resultado_compra_bs"></h3>
+
+      
+    </div>
+
+    <div class="section">
+      <h2>📌 Venta de USDT → Regresar a Bolivianos</h2>
+        <label>USDT disponibles:</label>
+      <input type="number" id="usdt_disponibles" placeholder="Automático" disabled />
+      <label>Tasa de venta USDT (Bs por 1 USDT):</label>
+      <input type="number" id="tasa_venta_usdt" placeholder="Ej: 6.51" />
+
+      <button onclick="procesarVentaBs()">Vender USDT</button>
+
+      <h3 id="resultado_venta_bs"></h3>
+      <h2 id="beneficio_final_bs"></h2>
+    </div>
+  </div>
+
+<script>
+let usdt_inicial = 0;
+let usdt_final = 0;
+let bs_obtenidos_global = 0;
+
+// Primera Card: USDT → Bs → USDT
+function procesarVenta() {
+  const ventaUSDT = parseFloat(document.getElementById("venta_usdt").value);
+  const tasaVenta = parseFloat(document.getElementById("tasa_venta").value);
+  const comision = parseFloat(document.getElementById("comision").value) / 100;
+
+  if (isNaN(ventaUSDT) || isNaN(tasaVenta)) {
+    document.getElementById("resultado_venta").textContent = "Ingrese valores válidos";
+    return;
+  }
+
+  usdt_inicial = ventaUSDT;
+
+  const ventaNeta = ventaUSDT * (1 - comision);
+  const bsObtenidos = ventaNeta * tasaVenta;
+  bs_obtenidos_global = bsObtenidos;
+
+  document.getElementById("bs_disponibles").value = bsObtenidos.toFixed(2);
+
+  document.getElementById("resultado_venta").textContent = `Resultado: ${ventaUSDT} USDT - ${(comision*100).toFixed(2)}% = ${ventaNeta.toFixed(2)} USDT → * ${tasaVenta} Bs = ${bsObtenidos.toFixed(2)} Bs`;
+}
+
+function procesarCompra() {
+  const bs = parseFloat(document.getElementById("bs_disponibles").value);
+  const tasaCompra = parseFloat(document.getElementById("tasa_compra").value);
+  const comision = parseFloat(document.getElementById("comision").value) / 100;
+
+  if (isNaN(bs) || isNaN(tasaCompra)) {
+    document.getElementById("resultado_compra").textContent = "Ingrese valores válidos";
+    return;
+  }
+
+  const usdtBruto = bs / tasaCompra;
+  const usdtNeto = usdtBruto * (1 - comision);
+
+  usdt_final = usdtNeto;
+  const beneficio = usdt_final - usdt_inicial;
+
+  document.getElementById("resultado_compra").textContent = `Compra: ${bs.toFixed(2)} Bs / ${tasaCompra} = ${usdtBruto.toFixed(2)} USDT - ${(comision*100).toFixed(2)}% = ${usdtNeto.toFixed(2)} USDT`;
+  document.getElementById("beneficio_final").textContent = `💰 Beneficio Neto: ${beneficio.toFixed(2)} USDT`;
+}
+
+// Segunda Card: Bs → USDT → Bs
+let usdt_from_bs = 0;
+let bs_final = 0;
+
+function procesarCompraBs() {
+  const bs = parseFloat(document.getElementById("bs_a_comprar").value);
+  const tasaCompra = parseFloat(document.getElementById("tasa_compra_usdt").value);
+  const comision = parseFloat(document.getElementById("comision").value) / 100;
+
+  if (isNaN(bs) || isNaN(tasaCompra)) {
+    document.getElementById("resultado_compra_bs").textContent = "Ingrese valores válidos";
+    return;
+  }
+
+  const usdtBruto = bs / tasaCompra;
+  usdt_from_bs = usdtBruto * (1 - comision);
+
+  document.getElementById("usdt_disponibles").value = usdt_from_bs.toFixed(4);
+  document.getElementById("resultado_compra_bs").textContent = `Compra: ${bs.toFixed(2)} Bs / ${tasaCompra} = ${usdtBruto.toFixed(4)} USDT - ${(comision*100).toFixed(2)}% = ${usdt_from_bs.toFixed(4)} USDT`;
+}
+
+function procesarVentaBs() {
+  const tasaVenta = parseFloat(document.getElementById("tasa_venta_usdt").value);
+  const comision = parseFloat(document.getElementById("comision").value) / 100;
+
+  if (isNaN(usdt_from_bs) || isNaN(tasaVenta)) {
+    document.getElementById("resultado_venta_bs").textContent = "Ingrese valores válidos";
+    return;
+  }
+
+  const usdtNetoVenta = usdt_from_bs * (1 - comision);
+  bs_final = usdtNetoVenta * tasaVenta;
+  const beneficio = bs_final - parseFloat(document.getElementById("bs_a_comprar").value);
+
+  document.getElementById("resultado_venta_bs").textContent = `Venta: ${usdt_from_bs.toFixed(4)} USDT - ${(comision*100).toFixed(2)}% * ${tasaVenta} Bs = ${bs_final.toFixed(2)} Bs`;
+  document.getElementById("beneficio_final_bs").textContent = `💰 Beneficio Neto: ${beneficio.toFixed(2)} Bs`;
+}
+</script>
+</body>
+</html>
